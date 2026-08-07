@@ -93,3 +93,26 @@ To run an individual benchmark rather than the entire suite via Node, pass the
 ```
 $ npm run build -- --env.only babel && npm run benchmark
 ```
+
+## Single-benchmark test sets
+
+For engine startup/warm-up experiments, this repository additionally provides
+one self-contained bundle per benchmark (payload included, no I/O needed), in
+three variants that differ only in the driver code at the end of each bundle:
+
+- `single_init_test/` — load only: builds the suite (bundle evaluation, library
+  initialization and payload load) but never calls the benchmark function.
+- `single_run_once_test/` — load + exactly one run: bypasses benchmark.js
+  sampling and calls each benchmark's `fn()` exactly once, reporting the wall
+  time in ms.
+- `single_run_test/` — load + measured run: runs the suite through benchmark.js
+  (`maxTime: 0`, `minSamples: 1`, i.e. a single sample), reporting runs/s.
+  Note that benchmark.js still performs a pretest call and calibrates the
+  iteration count up to `minTime` (~50 ms), so `fn()` executes at least twice.
+
+Each bundle can be run directly with Node or any JS shell, e.g.:
+
+```
+$ node single_run_once_test/acorn.js
+$ escargot single_init_test/typescript.js
+```
